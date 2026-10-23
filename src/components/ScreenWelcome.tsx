@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { APP_CONFIG } from '../config/appConfig';
-import { BeautyProfile, UserProfile } from '../types';
+import { BeautyProfile, SkinDepth, Undertone, UserProfile } from '../types';
 import { DEPTH_DEFAULT_SWATCHES } from '../utils/skinProfile';
+import { ComplexionScene } from './ComplexionScene';
 import {
   ArrowRight,
   ShieldCheck,
@@ -34,6 +35,9 @@ export const ScreenWelcome: React.FC<ScreenWelcomeProps> = ({
   onResetProfile,
 }) => {
   const isReturningUser = !!savedProfile;
+  const [heroDepth, setHeroDepth] = useState<SkinDepth>('medium');
+  const [heroUndertone, setHeroUndertone] = useState<Undertone>('warm');
+  const [heroAccent, setHeroAccent] = useState('#A85D63');
 
   // Resolve profile attributes safely whether structured as BeautyProfile or legacy UserProfile
   const skin = savedProfile?.skinProfile;
@@ -181,42 +185,68 @@ export const ScreenWelcome: React.FC<ScreenWelcomeProps> = ({
           </div>
         </div>
       ) : (
-        /* First-Time User View: Hero & Onboarding Pitch */
-        <div className="text-center max-w-2xl mx-auto mb-12 sm:mb-16">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-100 text-brand-800 text-xs font-semibold tracking-wide uppercase mb-6 shadow-sm border border-brand-200">
-            <Sparkles className="w-3.5 h-3.5 text-brand-600" />
-            Intelligent Beauty Guidance
-          </div>
-          <h1 className="font-serif text-4xl sm:text-6xl font-bold tracking-tight text-sand-950 mb-6 leading-tight">
-            Find makeup that works for you.
-          </h1>
-          <p className="text-lg sm:text-xl text-sand-700 font-light leading-relaxed mb-8">
-            Personalized shade and product recommendations based on your complexion, preferences, and budget.
-          </p>
-
-          {/* Primary CTA for New User */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <button
-              onClick={onCreateProfile}
-              className="w-full sm:w-auto px-8 py-4 rounded-full bg-brand-800 hover:bg-brand-900 text-sand-50 font-medium text-base shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2.5 group"
-            >
-              <span>Create my Beauty Profile</span>
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </button>
+        /* First-Time User View: discovery-led hero */
+        <section className="hue-hero mb-16 sm:mb-20" aria-labelledby="hueguide-hero-title">
+          <div className="hue-hero-copy">
+            <div className="hue-kicker"><span className="hue-kicker-dot" /> Intelligent beauty guidance</div>
+            <h1 id="hueguide-hero-title">Colour looks different <em>on everyone.</em></h1>
+            <p className="hue-hero-lede">HueGuide helps you discover yours — then turns that discovery into makeup that feels like it belongs to you.</p>
+            <div className="flex flex-col sm:flex-row gap-3 mb-6">
+              <button onClick={onCreateProfile} className="hue-primary-cta group">
+                <span>Build my Beauty Profile</span>
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </button>
+              <button onClick={onStartDailyRequest} className="hue-secondary-cta">Explore HueGuide</button>
+            </div>
+            <div className="hue-privacy-note">
+              <ShieldCheck className="w-4 h-4 text-emerald-700 flex-shrink-0" />
+              <span>Private by design · your photos stay on your device.</span>
+              <button onClick={onOpenPrivacy} className="underline font-medium hover:text-brand-900">Learn more</button>
+            </div>
           </div>
 
-          {/* Privacy micro-banner */}
-          <div className="mt-6 flex items-center justify-center gap-2 text-xs text-sand-600">
-            <ShieldCheck className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-            <span>Photos never leave your device. 100% processed locally in your browser.</span>
-            <button
-              onClick={onOpenPrivacy}
-              className="text-brand-700 underline font-medium hover:text-brand-900 ml-1"
-            >
-              Learn more
-            </button>
+          <div className="hue-hero-art" aria-label="Interactive complexion colour exploration">
+            <div className="hue-art-orbit hue-art-orbit-one" />
+            <div className="hue-art-orbit hue-art-orbit-two" />
+            <div className="hue-art-label"><span className="hue-live-dot" /> Live colour study</div>
+            <ComplexionScene depth={heroDepth} undertone={heroUndertone} accentHex={heroAccent} className="hue-hero-scene" label="Live complexion colour study" />
+            <div className="hue-art-caption"><span>{heroDepth.replace('-', ' ')}</span><b>·</b><span>{heroUndertone} undertone</span></div>
+            <div className="hue-swatch-cloud" aria-label="Explore makeup colour families">
+              {[
+                { name: 'Nude', hex: '#C79B7D' },
+                { name: 'Rose', hex: '#B76E78' },
+                { name: 'Coral', hex: '#D98168' },
+                { name: 'Berry', hex: '#7E3E55' },
+                { name: 'Terracotta', hex: '#A85D49' },
+              ].map(swatch => (
+                <button
+                  key={swatch.name}
+                  type="button"
+                  className={`hue-float-swatch ${heroAccent === swatch.hex ? 'is-active' : ''}`}
+                  style={{ '--swatch': swatch.hex } as React.CSSProperties}
+                  onClick={() => setHeroAccent(swatch.hex)}
+                  title={`Preview ${swatch.name}`}
+                  aria-label={`Preview ${swatch.name} makeup colour`}
+                >
+                  <span />
+                  <small>{swatch.name}</small>
+                </button>
+              ))}
+            </div>
+            <div className="hue-depth-picker" aria-label="Preview complexion depth">
+              {(['very-fair', 'light', 'medium', 'tan', 'deep'] as SkinDepth[]).map(option => (
+                <button key={option} type="button" onClick={() => setHeroDepth(option)} className={heroDepth === option ? 'is-active' : ''} aria-label={`Preview ${option.replace('-', ' ')} complexion`}>
+                  <span style={{ backgroundColor: DEPTH_DEFAULT_SWATCHES[option] }} />
+                </button>
+              ))}
+            </div>
+            <div className="hue-undertone-picker" aria-label="Preview undertone">
+              {(['cool', 'neutral', 'warm'] as Undertone[]).map(option => (
+                <button key={option} type="button" onClick={() => setHeroUndertone(option)} className={heroUndertone === option ? 'is-active' : ''}>{option}</button>
+              ))}
+            </div>
           </div>
-        </div>
+        </section>
       )}
 
       {/* 3 Core Pillars & How It Works (For New Visitors) */}

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { SkinAnalysisResult, SkinDepth, Undertone } from '../types';
 import { buildManualComplexionResult } from '../utils/skinProfile';
+import { ComplexionScene } from './ComplexionScene';
 import {
   ArrowRight,
   ArrowLeft,
@@ -122,6 +123,8 @@ export const ScreenManualComplexion: React.FC<ScreenManualComplexionProps> = ({
   const [selectedUndertone, setSelectedUndertone] = useState<Undertone>(
     initialResult?.undertone || 'warm'
   );
+  const [previewDepth, setPreviewDepth] = useState<SkinDepth | null>(null);
+  const [previewUndertone, setPreviewUndertone] = useState<Undertone | null>(null);
   const [showColorPicker, setShowColorPicker] = useState<boolean>(
     initialResult?.colourSource === 'user_selected'
   );
@@ -169,6 +172,33 @@ export const ScreenManualComplexion: React.FC<ScreenManualComplexionProps> = ({
         </p>
       </div>
 
+      <section className="manual-complexion-stage mb-8" aria-labelledby="live-complexion-title">
+        <div className="manual-stage-copy">
+          <span className="hue-kicker"><span className="hue-kicker-dot" /> Live visual reference</span>
+          <h3 id="live-complexion-title">See your complexion take shape.</h3>
+          <p>Hover over a depth or undertone to preview it on the face. Click to keep your choice.</p>
+          <div className="manual-stage-value">
+            <span className="manual-stage-dot" style={{ backgroundColor: customHex || selectedDepthObj.swatchHex }} />
+            <strong>{selectedDepthObj.label}</strong>
+            <span>·</span>
+            <strong>{selectedUndertoneObj.title}</strong>
+          </div>
+          <p className="manual-stage-note">A stylised visual reference — not an exact measurement of your skin.</p>
+        </div>
+        <div className="manual-stage-canvas-wrap">
+          <ComplexionScene
+            depth={selectedDepth}
+            undertone={selectedUndertone}
+            customHex={customHex}
+            previewDepth={previewDepth}
+            previewUndertone={previewUndertone}
+            label="Live complexion preview"
+            className="manual-stage-canvas"
+          />
+          <span className="manual-stage-hint">Drag gently to explore</span>
+        </div>
+      </section>
+
       <div className="space-y-8">
         {/* SECTION 1: SKIN DEPTH */}
         <div className="p-6 rounded-2xl bg-white border border-sand-200 shadow-sm space-y-4">
@@ -189,6 +219,10 @@ export const ScreenManualComplexion: React.FC<ScreenManualComplexionProps> = ({
                   key={opt.id}
                   type="button"
                   onClick={() => setSelectedDepth(opt.id)}
+                  onMouseEnter={() => setPreviewDepth(opt.id)}
+                  onMouseLeave={() => setPreviewDepth(null)}
+                  onFocus={() => setPreviewDepth(opt.id)}
+                  onBlur={() => setPreviewDepth(null)}
                   className={`p-3.5 rounded-xl border text-left transition-all flex items-center gap-3.5 ${
                     isSelected
                       ? 'bg-brand-50 border-brand-500 ring-1 ring-brand-500 shadow-sm'
@@ -249,6 +283,10 @@ export const ScreenManualComplexion: React.FC<ScreenManualComplexionProps> = ({
                   key={opt.id}
                   type="button"
                   onClick={() => setSelectedUndertone(opt.id)}
+                  onMouseEnter={() => setPreviewUndertone(opt.id)}
+                  onMouseLeave={() => setPreviewUndertone(null)}
+                  onFocus={() => setPreviewUndertone(opt.id)}
+                  onBlur={() => setPreviewUndertone(null)}
                   className={`p-3.5 rounded-xl border text-left transition-all ${
                     isSelected
                       ? 'bg-brand-50 border-brand-500 ring-1 ring-brand-500 shadow-sm'
